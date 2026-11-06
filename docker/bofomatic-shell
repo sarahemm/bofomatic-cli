@@ -1,0 +1,13 @@
+#!/bin/sh
+# Login shell for the `bof` account: it IS the BoF-O-Matic CLI.
+# When the CLI exits, this returns and the login session ends (telnet drops;
+# the serial getty respawns a fresh login prompt).
+
+# The CLI loads bofomatic-cli.yaml relative to the working directory.
+cd /opt/bofomatic || exit 1
+
+# Fall back to a sane terminal type if login didn't propagate one.
+: "${TERM:=vt320}"
+export TERM
+
+exec ./bofomatic-cli

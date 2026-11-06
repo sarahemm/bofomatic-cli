@@ -1,0 +1,41 @@
+services:
+  bofomatic:
+    build:
+      context: .
+      args:
+        BOF_PASSWORD: "bof"        # password for the telnet/serial `bof` login
+    image: bofomatic-cli
+    container_name: bofomatic
+    restart: unless-stopped
+
+    # ---- Telnet -------------------------------------------------------------
+    # Connect from anywhere on the network:
+    #     telnet <docker-host> 23        (login: bof  /  password: bof)
+    # Change the host side (left number) if port 23 is taken, e.g. "2323:23".
+    ports:
+      - "23:23"
+
+    environment:
+      TZ: "UTC"                     # clock shown in the CLI title bar
+      # --- Serial: uncomment these together with the `devices:` block below ---
+      # SERIAL_DEV: "/dev/ttyUSB0"  # device path INSIDE the container
+      # SERIAL_BAUD: "9600"         # VT320 factory default is 9600 8N1
+      # SERIAL_TERM: "vt320"        # terminfo entry: vt320 / vt220 / vt100
+
+    # ---- Serial console for a real VT320 ------------------------------------
+    # The terminal plugs into a serial port on the HOST: either a real
+    # /dev/ttyS0, or (more likely) a USB-to-serial / USB-to-RS232 adapter that
+    # shows up as /dev/ttyUSB0. Map that host device into the container here,
+    # then uncomment the SERIAL_* vars above. Match the left/right paths to
+    # your adapter. NOTE: Compose refuses to start if the host device path
+    # does not exist, so keep this commented until the adapter is plugged in.
+    #
+    # devices:
+    #   - "/dev/ttyUSB0:/dev/ttyUSB0"
+
+    # ---- Optional: use your own config without rebuilding -------------------
+    # volumes:
+    #   - ./bofomatic-cli.yaml:/opt/bofomatic/bofomatic-cli.yaml:ro
+
+    stdin_open: true
+    tty: true
