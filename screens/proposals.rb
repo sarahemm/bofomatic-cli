@@ -9,11 +9,13 @@ module BomCli
       @infolist.right_heading = "Scheduling Status"
     end
     
-    def present
+    def present(sort_by: :title)
+      order = :ascending
+      order = :descending if sort_by == :submitted_at
+
       @screen.titlebar.center = "BoF-O-Matic - Session Proposals"
-      #@screen.inputbar.instructions = "M=Main Menu"
       @infolist.clear_items
-      @bom_api.proposals.each do |proposal|
+      @bom_api.proposals(sort_by: sort_by, order: order).each do |proposal|
         schedule_line1 = "Not Scheduled"
         schedule_line2 = ""
         if(proposal.scheduled) then
@@ -31,7 +33,16 @@ module BomCli
       @screen.titlebar.right = time_string
       @screen.redraw
       
-      @infolist.get_response(extra_options: {'M' => 'Main Menu'})
+      options = {'M' => 'Main Menu'}
+      if(sort_by == :title) then
+        options['N'] = 'Sort by Newest'
+        @infolist.infoline = "Filter: none applied\tSort: Session Title"
+      else
+        options['N'] = 'Sort by Name'
+        @infolist.infoline = "Filter: none applied\tSort: Newest Submissions"
+      end
+
+      @infolist.get_response(extra_options: options)
     end
   end
 end

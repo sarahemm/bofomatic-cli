@@ -22,6 +22,7 @@ begin
 
   state = :main_menu
   proposal_id = -1
+  sort_order = :title
   loop do
     case state
       when :main_menu
@@ -32,12 +33,16 @@ begin
             state = :propose_new
         end
       when :proposals
-        result = proposals.present
+        result = proposals.present(sort_by: sort_order)
         case result
           when 'm', 'M'
             state = :main_menu
           when 'n', 'N'
-            # TODO: sorting goes here
+            if(sort_order == :title) then
+              sort_order = :submitted_at
+            else
+              sort_order = :title
+            end
           else
             state = :proposal_details
             proposal_id = result
