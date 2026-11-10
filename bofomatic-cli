@@ -15,10 +15,10 @@ CFG = YAML.load(File.read("bofomatic-cli.yaml"))
 begin
   screen = FSTui::Screen.new
   main_menu = BomCli::MainMenu.new(screen: screen, no_exit: CFG['no_exit'])
-  proposals = BomCli::ProposalsView.new(screen: screen, url: CFG['api_url'], key: CFG['api_key'])
-  proposal_details = BomCli::ProposalDetailView.new(screen: screen, url: CFG['api_url'], key: CFG['api_key'])
-  proposal_interest = BomCli::ProposalInterestView.new(screen: screen, url: CFG['api_url'], key: CFG['api_key'])
-  propose_new = BomCli::ProposeNewView.new(screen: screen, url: CFG['api_url'], key: CFG['api_key'])
+  proposals = BomCli::ProposalsView.new(screen: screen, url: CFG['api_url'], key: CFG['api_key'], timeout: CFG['timeout_to_menu'])
+  proposal_details = BomCli::ProposalDetailView.new(screen: screen, url: CFG['api_url'], key: CFG['api_key'], timeout: CFG['timeout_to_menu'])
+  proposal_interest = BomCli::ProposalInterestView.new(screen: screen, url: CFG['api_url'], key: CFG['api_key'], timeout: CFG['timeout_to_menu'])
+  propose_new = BomCli::ProposeNewView.new(screen: screen, url: CFG['api_url'], key: CFG['api_key'], timeout: CFG['timeout_to_menu'])
 
   state = :main_menu
   proposal_id = -1
@@ -43,6 +43,8 @@ begin
             else
               sort_order = :title
             end
+          when :timeout
+            state = :main_menu
           else
             state = :proposal_details
             proposal_id = result
@@ -59,10 +61,17 @@ begin
             state = :main_menu
           when 'i', 'I'
             state = :proposal_interest
+          when :timeout
+            state = :main_menu
         end
       when :proposal_interest
-        proposal_interest.present(proposal_id)
-        state = :proposal_details
+        result = proposal_interest.present(proposal_id)
+        case result
+          when :timeout
+            state = :main_menu
+          else
+            state = :proposal_details
+        end
     end
   end
 rescue Errno::ECONNREFUSED => e

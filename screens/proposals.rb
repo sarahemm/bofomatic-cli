@@ -1,12 +1,14 @@
 module BomCli
   class ProposalsView
-    def initialize(screen:, url:, key:)
+    def initialize(screen:, url:, key:, timeout: nil)
       @screen = screen
       @bom_api = BofOMatic::ApiV1.new(url: url, apikey: key)
       
       @infolist = @screen.new_infolist("Filter: none applied", 2)
       @infolist.left_heading = "Session Details"
       @infolist.right_heading = "Scheduling Status"
+
+      @timeout = timeout
     end
     
     def present(sort_by: :title)
@@ -42,7 +44,7 @@ module BomCli
         @infolist.infoline = "Filter: none applied\tSort: Newest Submissions"
       end
 
-      @infolist.get_response(extra_options: options)
+      @infolist.get_response(extra_options: options, timeout: @timeout)
     end
   end
 end

@@ -1,8 +1,9 @@
 module BomCli
   class ProposalInterestView
-    def initialize(screen:, url:, key:)
+    def initialize(screen:, url:, key:, timeout: nil)
       @screen = screen
       @bom_api = BofOMatic::ApiV1.new(url: url, apikey: key)
+      @timeout = timeout
       
       @fieldscreen = @screen.new_fieldscreen("BoF-O-Matic - Express Interest", "Subtitle", "Details go here\nalso here\neven here, too\nand here!")
       @fieldscreen = @screen.new_fieldscreen "BoF-O-Matic", "Express Interest", [
@@ -26,8 +27,9 @@ module BomCli
       @fieldscreen.title = "Express Interest"
       @fieldscreen.subtitle = "'#{proposal.title}'"
       
-      fields = @fieldscreen.get_response
+      fields = @fieldscreen.get_response(timeout: @timeout)
       return if fields == nil
+      return :timeout if fields == :timeout
       # TODO: clean this up
       name = email = phone = nil
       fields.each do |field|

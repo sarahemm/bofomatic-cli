@@ -1,8 +1,9 @@
 module BomCli
   class ProposeNewView
-    def initialize(screen:, url:, key:)
+    def initialize(screen:, url:, key:, timeout: nil)
       @screen = screen
       @bom_api = BofOMatic::ApiV1.new(url: url, apikey: key)
+      @timeout = timeout
       
       @fieldscreen = @screen.new_fieldscreen "BoF-O-Matic", "Propose New Session", [
         FSTui::Field.new(name: "Your Name"),
@@ -28,8 +29,9 @@ module BomCli
       #@fieldscreen.title = "Propose Session"
       #@fieldscreen.subtitle = "'#{proposal.title}'"
       
-      fields = @fieldscreen.get_response
+      fields = @fieldscreen.get_response(timeout: @timeout)
       return if fields == nil
+      return :timeout if fields == :timeout
       # TODO: clean this up
       submitted_by = submitter_email = submitter_phone = session_title = session_description = scheduler_notes = nil
       fields.each do |field|

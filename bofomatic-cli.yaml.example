@@ -1,5 +1,6 @@
 api_url: "http://bof-o-matic.example"
 api_key: "key_goes_here"
 
+timeout_to_menu: 300
 no_exit: false 
 

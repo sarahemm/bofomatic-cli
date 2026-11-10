@@ -1,8 +1,9 @@
 module BomCli
   class ProposalDetailView
-    def initialize(screen:, url:, key:)
+    def initialize(screen:, url:, key:, timeout: nil)
       @screen = screen
       @bom_api = BofOMatic::ApiV1.new(url: url, apikey: key)
+      @timeout = timeout
       
       @datascreen = @screen.new_datascreen("Title", "Subtitle", "Details go here\nalso here\neven here, too\nand here!")
     end
@@ -29,7 +30,7 @@ module BomCli
       schedule_info = "Scheduled for #{proposal.start_time.strftime("%A %H:%M")} in #{proposal.room}" if proposal.scheduled
       @datascreen.data = proposer_info + "\n" + schedule_info + "\n\n" + interests.join("\n")
 
-      @datascreen.get_response options: ['i', 'b', 'm']
+      @datascreen.get_response options: ['i', 'b', 'm'], timeout: @timeout
     end
   end
 end
