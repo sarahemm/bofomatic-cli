@@ -1,0 +1,37 @@
+module BomCli
+  class ProposalsView
+    def initialize(screen:, url:, key:)
+      @screen = screen
+      @bom_api = BofOMatic::ApiV1.new(url: url, apikey: key)
+      
+      @infolist = @screen.new_infolist("Filter: none applied", 2)
+      @infolist.left_heading = "Session Details"
+      @infolist.right_heading = "Scheduling Status"
+    end
+    
+    def present
+      @screen.titlebar.center = "BoF-O-Matic - Session Proposals"
+      #@screen.inputbar.instructions = "M=Main Menu"
+      @infolist.clear_items
+      @bom_api.proposals.each do |proposal|
+        schedule_line1 = "Not Scheduled"
+        schedule_line2 = ""
+        if(proposal.scheduled) then
+          schedule_line1 = proposal.start_time.strftime("%A %H:%M")
+          schedule_line2 = proposal.room
+        end
+        @infolist.add_item FSTui::InfoItem.new(key: proposal.id, rows: [
+          FSTui::InfoRow.new(lhs: proposal.title, rhs: schedule_line1),
+          FSTui::InfoRow.new(lhs: proposal.description, rhs: schedule_line2)
+        ])
+      end
+      date_string = Time.now.strftime("%d %^b %Y")
+      time_string = Time.now.strftime("%H:%M")
+      @screen.titlebar.left = date_string
+      @screen.titlebar.right = time_string
+      @screen.redraw
+      
+      @infolist.get_response(extra_options: {'M' => 'Main Menu'})
+    end
+  end
+end
