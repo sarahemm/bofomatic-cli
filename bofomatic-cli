@@ -20,21 +20,44 @@ begin
   proposal_interest = BomCli::ProposalInterestView.new(screen: screen, url: CFG['api_url'], key: CFG['api_key'])
   propose_new = BomCli::ProposeNewView.new(screen: screen, url: CFG['api_url'], key: CFG['api_key'])
 
-  while true do
-    case main_menu.present
-      when :proposals
-        loop do
-          proposal_id = proposals.present
-          break if proposal_id == 'm' or proposal_id == 'M'
-          selected_option = proposal_details.present(proposal_id)
-          break if selected_option.downcase == 'm'
-          if(selected_option.downcase == 'i') then
-            # they want to express interest in the session
-            proposal_interest.present(proposal_id)
-          end
+  state = :main_menu
+  proposal_id = -1
+  loop do
+    case state
+      when :main_menu
+        case main_menu.present
+          when :proposals
+            state = :proposals
+          when :propose
+            state = :propose_new
         end
-      when :propose
+      when :proposals
+        result = proposals.present
+        case result
+          when 'm', 'M'
+            state = :main_menu
+          when 'n', 'N'
+            # TODO: sorting goes here
+          else
+            state = :proposal_details
+            proposal_id = result
+        end
+      when :propose_new
         propose_new.present
+        state = :main_menu
+      when :proposal_details
+        result = proposal_details.present(proposal_id)
+        case result
+          when 'b', 'B'
+            state = :proposals
+          when 'm', 'M'
+            state = :main_menu
+          when 'i', 'I'
+            state = :proposal_interest
+        end
+      when :proposal_interest
+        proposal_interest.present(proposal_id)
+        state = :proposal_details
     end
   end
 rescue Errno::ECONNREFUSED => e
