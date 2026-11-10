@@ -227,6 +227,9 @@ rescue Socket::ResolutionError => e
 rescue RestClient::Unauthorized => e
   screen.pop_messagebox("Auth Error", "API key is invalid or revoked, check configuration.")
   retry
+rescue RestClient::ServiceUnavailable => e
+  screen.pop_messagebox("Service Unavailable", "Backend service unavailable (503), please try later.")
+  retry
 rescue Interrupt => e
   if(!CFG['no_exit']) then
     screen.destroy
