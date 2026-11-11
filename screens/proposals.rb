@@ -11,13 +11,19 @@ module BomCli
       @timeout = timeout
     end
     
-    def present(sort_by: :title)
+    def present(sort_by: :title, filter: nil)
       order = :ascending
       order = :descending if sort_by == :submitted_at
 
       @screen.titlebar.center = "BoF-O-Matic - Session Proposals"
       @infolist.clear_items
       @bom_api.proposals(sort_by: sort_by, order: order).each do |proposal|
+        if(filter) then
+          next unless !filter[:title] or proposal.title.downcase.include? filter[:title].downcase
+          next unless !filter[:name] or proposal.submitted_by.downcase.include? filter[:name].downcase
+          next unless !filter[:description] or proposal.description.downcase.include? filter[:description].downcase
+        end
+
         schedule_line1 = "Not Scheduled"
         schedule_line2 = ""
         if(proposal.scheduled) then
@@ -35,14 +41,26 @@ module BomCli
       @screen.titlebar.right = time_string
       @screen.redraw
       
-      options = {'M' => 'Main Menu'}
+      options = {'M' => 'Main Menu', 'F' => 'Filter Results'}
+      options['U'] = 'Unfilter Results' unless filter == nil
+
       if(sort_by == :title) then
         options['N'] = 'Sort by Newest'
-        @infolist.infoline = "Filter: none applied\tSort: Session Title"
+        sort_text = "Sort: Session Title"
       else
         options['N'] = 'Sort by Name'
-        @infolist.infoline = "Filter: none applied\tSort: Newest Submissions"
+        sort_text = "Sort: Newest Submissions"
       end
+      filter_text = ""
+      if(filter) then
+        filter_texts = []
+        filter_texts << "Name includes '#{filter[:name]}'" if filter[:name]
+        filter_texts << "Title includes '#{filter[:title]}'" if filter[:title]
+        filter_texts << "Description includes '#{filter[:description]}'" if filter[:description]
+        filter_text = filter_texts.join(', ')
+      end
+      filter_text = "None applied" unless filter_text != ''
+      @infolist.infoline = "#{sort_text}\tFilter: #{filter_text}"
 
       @infolist.get_response(extra_options: options, timeout: @timeout)
     end

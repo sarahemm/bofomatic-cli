@@ -6,6 +6,7 @@ require 'bofomatic'
 
 require './screens/mainmenu.rb'
 require './screens/proposals.rb'
+require './screens/proposals_filter.rb'
 require './screens/proposal_detail.rb'
 require './screens/proposal_add.rb'
 require './screens/interest_add.rb'
@@ -16,6 +17,7 @@ begin
   screen = FSTui::Screen.new
   main_menu = BomCli::MainMenu.new(screen: screen, no_exit: CFG['no_exit'])
   proposals = BomCli::ProposalsView.new(screen: screen, url: CFG['api_url'], key: CFG['api_key'], timeout: CFG['timeout_to_menu'])
+  proposals_filter = BomCli::ProposalsFilterView.new(screen: screen, url: CFG['api_url'], key: CFG['api_key'], timeout: CFG['timeout_to_menu'])
   proposal_details = BomCli::ProposalDetailView.new(screen: screen, url: CFG['api_url'], key: CFG['api_key'], timeout: CFG['timeout_to_menu'])
   proposal_interest = BomCli::ProposalInterestView.new(screen: screen, url: CFG['api_url'], key: CFG['api_key'], timeout: CFG['timeout_to_menu'])
   propose_new = BomCli::ProposeNewView.new(screen: screen, url: CFG['api_url'], key: CFG['api_key'], timeout: CFG['timeout_to_menu'])
@@ -23,9 +25,11 @@ begin
   state = :main_menu
   proposal_id = -1
   sort_order = :title
+  proposals_filters = {}
   loop do
     case state
       when :main_menu
+        proposals_filters = nil
         case main_menu.present
           when :proposals
             state = :proposals
@@ -33,10 +37,14 @@ begin
             state = :propose_new
         end
       when :proposals
-        result = proposals.present(sort_by: sort_order)
+        result = proposals.present(sort_by: sort_order, filter: proposals_filters)
         case result
           when 'm', 'M'
             state = :main_menu
+          when 'f', 'F'
+            state = :proposals_filter
+          when 'u', 'U'
+            proposals_filters = {}
           when 'n', 'N'
             if(sort_order == :title) then
               sort_order = :submitted_at
@@ -49,6 +57,10 @@ begin
             state = :proposal_details
             proposal_id = result
         end
+      when :proposals_filter
+        result = proposals_filter.present
+        proposals_filters = result unless result == nil
+        state = :proposals
       when :propose_new
         propose_new.present
         state = :main_menu
