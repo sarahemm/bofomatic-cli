@@ -62,7 +62,7 @@ module BomCli
       filter_text = "None applied" unless filter_text != ''
       @infolist.infoline = "#{sort_text}\tFilter: #{filter_text}"
 
-      @infolist.get_response(extra_options: options, timeout: @timeout)
+      @infolist.get_response(extra_options: options, timeout: @timeout, sorted: true)
     end
   end
 end
